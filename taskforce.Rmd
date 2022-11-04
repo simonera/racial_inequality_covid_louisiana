@@ -1,0 +1,105 @@
+---
+title: "Racial disparities in COVID-19 in Louisiana"
+author: "Simone Rambotti"
+date: "2022-08-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In July 2020, I joined the [Louisiana COVID-19 Health Equity Task Force](https://gov.louisiana.gov/index.cfm/newsroom/detail/2469), established by Governor John Bel Edwards. I was appointed as co-chair of the Data and Analysis Subcommittee and became the only chair shortly after. The goal of the task force was to provide data-driven information on how COVID-19 was affecting communities in the state and relative recommendations on how to improve health outcomes. The primary task of my Subcommittee was to produce a report highlighting COVID-19 disparities by several sociodemographic variables. The Southern University System hosts the [full report]( https://www.sus.edu/assets/LaCOVID/AUGUST-COVID-Task-Force-Subcommittee-Reports.pdf).  
+
+I present below the most striking result. The data source is the Louisiana Department of Health (LDH), which provided my subcommittee with partial data through May 18, 2020. There are several limitations to the data (see the report for more details). However, a clear disparity by race is evident. Here, I’m focusing on the Black/White difference. In the code below, I created the data frame and a plot.
+
+```{r black}
+# load ggplot 2
+library(ggplot2)
+
+# create data frame
+black <- data.frame(outcome = c("Positive cases",
+                                "Hospitalizations",
+                                "Deaths"),
+                    percent = c(47.45, 60.35, 53.2))
+
+# plot
+ggplot(data=black, aes(x = outcome, y = percent)) +
+  geom_col(width=0.5) +
+  geom_hline(yintercept = 32.7, 
+             linetype="dashed", color = "#6699cc", size=2) +
+# scale_x_discrete reorders the columns
+  scale_x_discrete(limits=c("Positive cases", "Hospitalizations", "Deaths")) +
+  labs(title = "Louisiana COVID-19 Data, May 2020: Black", 
+       x = "", y = "Percent of state total",
+       caption = "Sources: Louisiana Department of Health; U.S. Census",
+       subtitle = "The horizontal line represents the Black share of state population")
+```
+
+The data show that ***Black residents of Louisiana represented a disproportionate share of positive cases, hospitalizations, and deaths.*** The horizontal line indicates that 32.7% of Louisiana's population is Black. However, 47.45% of the state’s positive cases, 60.4% of hospital admissions, and 53.2% of deaths occurred among Black residents. Let’s see the trend among White Louisianans.
+
+```{r white}
+# create data frame
+white <- data.frame(outcome = c("Positive cases",
+                                "Hospitalizations",
+                                "Deaths"),
+                    percent = c(25.2, 29.32, 43.94))
+
+# plot
+ggplot(data=white, aes(x = outcome, y = percent)) +
+  geom_col(width=0.5) +
+  geom_hline(yintercept = 62.9, 
+             linetype="dashed", color = "#6699cc", size=2) +
+  scale_x_discrete(limits=c("Positive cases", "Hospitalizations", "Deaths")) +
+  labs(title = "Louisiana COVID-19 Data, May 2020: White", 
+       x = "", y = "Percent of state total",
+       caption = "Sources: Louisiana Department of Health; U.S. Census",
+       subtitle = "The horizontal line represents the White share of state population")
+
+```
+
+The horizontal line shows that 62.9% of Louisianans identify as White. The same population comprises 25.2% of the state's positive cases, 29.3% of hospital admissions, and 43.9% of deaths. It is worth noting that race was unknown in about 20% of positive cases and 5% of hospitalizations. Despite that, the overall picture is clear. 
+
+There are many [structural explanations](https://www.brookings.edu/blog/fixgov/2020/04/09/why-are-blacks-dying-at-higher-rates-from-covid-19/) for this inequality, all of which have deep roots in the history of the United States. Frankly speaking, it was impossible to revert all this history in just a few months, but my subcommittee made several recommendations. 
+
+From a data perspective, we recommended the establishment of standardized protocols for data collection, so that we could have high-quality data comparable across all LDH regions. We also recommended the collection and sharing of disaggregated data. Most importantly, we recommended the allocation of proper resources to the LDH. 
+
+We also recommended outreach initiatives to increase the proper representation of marginalized communities and ["overcome trust issues related to healthcare."](https://www.brookings.edu/blog/fixgov/2020/04/10/how-to-reduce-the-racial-gap-in-covid-19-deaths/) Later, my subcommittee made additional recommendations, for example, on how to equitably roll out vaccines. 
+
+How did things change? I collected the most recent data on COVID-19 deaths from the [LDH dashboard](https://ldh.la.gov/page/4065). The results are remarkable. 
+
+```{r now}
+# create data frame
+now <- data.frame(Time = rep(c("May 2020", "July 2022"), each = 2),
+                  outcome = rep(c("Deaths"), 4),
+                  race = rep(c("Black", "White"), 2),
+                  population = rep(c(32.7, 62.9), 2),
+                  percent=c(53.2, 43.94, 34.6, 63.8))
+
+# by default, R follows alphabetic order
+# July 2022 would be the first col, followed by May 2020
+# to change the order, run the following code
+now$Time <- factor(now$Time, levels=c("May 2020","July 2022"))
+
+# plot 
+ggplot(data = now, aes(x = outcome, y = percent, fill = Time)) +
+  facet_wrap(~race) +
+  geom_col(width=0.75, position = position_dodge(1)) +
+# using yintercept = population creates one horizontal line per facet
+  # as a function of how I created the data frame
+  # where population = 32.7 for Black
+  # and population = 62.9 for White
+  geom_hline(aes(yintercept = population),
+             linetype="dashed", color = "#6699cc", size=2) +
+  scale_fill_brewer(palette="Set2") +
+  labs(title = "Louisiana COVID-19 Deaths, May 2020-July 2022, by Race", 
+       x = "", y = "Percent of state total",
+       caption = "Sources: Louisiana Department of Health; U.S. Census",
+       subtitle = "The horizontal line represents the share of state population for each race")
+```
+
+The Black share of total state deaths decreased from 53.2% in May 2020 to 34.6% in July 2022, which is very close to the share of Black population in Louisiana (32.7%). On the other hand, the White share of state deaths increased from 43.9% (May 2020) to 63.8% (July 2022), just above the share of White population in the state (62.9%). In other words, this graph shows that ***the racial disparity in COVID-19 mortality in Louisiana essentially disappeared***. 
+
+Now, there are some caveats. For example, if one looks at parishes including major cities (e.g., Orleans), a sizable gap remains. More in general, adjusting for age would probably reveal that the gap is wider than it appears, as it is at the [national level](https://yourlocalepidemiologist.substack.com/p/the-morning-today-iswrong). That being said, this is a success story. Vaccines contributed to this result. Louisiana is the only state where there is no racial gap in vaccines, and even in the context of low overall rates, this matters a great deal. As noticed by some, "[Public health departments and grassroots organizations have been working tirelessly to get vaccinations to underserved communities](https://yourlocalepidemiologist.substack.com/p/the-morning-today-iswrong)." That hard work paid off.
+
+The taskforce met for the last time in April 2022. I wish the state didn't decide to discontinue the taskforce. The common thread in the chairs' last comments, including mine, was that the pandemic wasn't over, and that we had to remain vigilant. I also wish that the state leadership made a similar effort to tackle health inequities beyond COVID-19 (e.g., maternal care, chronic conditions, and so forth). When leaders make a concerted effort to improve things, they usually improve. This should happen more often. 
